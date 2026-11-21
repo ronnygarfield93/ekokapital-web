@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply text-slate-800;
+    background: linear-gradient(180deg, #f8fafd 0%, #f1f5fb 55%, #f8f6f1 100%);
+  }
+}
+
+.hero-grid-pattern {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.bg-eko-hero {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(220, 184, 96, 0.22) 0%, transparent 42%),
+    radial-gradient(circle at 12% 88%, rgba(59, 130, 246, 0.22) 0%, transparent 45%),
+    linear-gradient(135deg, #071226 0%, #122952 48%, #214a8a 100%);
+}
+
+.bg-eko-bar {
+  background: linear-gradient(90deg, #071226 0%, #153162 50%, #0d2144 100%);
+}
+
+.bg-eko-footer {
+  background:
+    radial-gradient(circle at 90% 0%, rgba(206, 159, 56, 0.14) 0%, transparent 38%),
+    linear-gradient(160deg, #060f20 0%, #0e2042 58%, #153160 100%);
+}
+
+.bg-eko-surface {
+  background: linear-gradient(180deg, #f8fafd 0%, #eef4fb 50%, #f8f6f1 100%);
+}
+
+.bg-eko-gold-gradient {
+  background: linear-gradient(135deg, #ebd082 0%, #cfa03b 52%, #b07f1e 100%);
+}
+
+.bg-eko-gold-gradient:hover {
+  background: linear-gradient(135deg, #f3dc98 0%, #dab04d 52%, #be8c26 100%);
+}
+
+.bg-eko-navy-btn {
+  background: linear-gradient(135deg, #244b8e 0%, #132952 100%);
+}
+
+.bg-eko-navy-btn:hover {
+  background: linear-gradient(135deg, #2d5aa8 0%, #193568 100%);
+}
+
+.text-eko-gold-gradient {
+  background: linear-gradient(135deg, #f4df9b 0%, #dfb75c 50%, #c6922c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@keyframes eko-marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.eko-marquee-track {
+  display: inline-flex;
+  width: max-content;
+  animation: eko-marquee 34s linear infinite;
+}
+
+.eko-marquee-wrapper:hover .eko-marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eko-marquee-track {
+    animation: none;
+  }
+}
