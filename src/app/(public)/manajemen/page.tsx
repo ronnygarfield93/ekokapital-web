@@ -38,7 +38,7 @@ export default async function ManajemenPage() {
             {MANAGEMENT.commissioners.map((p) => (
               <article
                 key={p.name}
-                className="rounded-2xl border border-slate-200 bg-white p-7 shadow-card"
+                className="eko-card-lift rounded-2xl border border-slate-200 bg-white p-7 shadow-card"
               >
                 <div className="flex items-center gap-4">
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-navy-900 to-navy-700 font-serif text-xl font-bold text-gold-300">
@@ -75,7 +75,7 @@ export default async function ManajemenPage() {
             {MANAGEMENT.directors.map((p) => (
               <article
                 key={p.name}
-                className="rounded-2xl border border-slate-200 bg-white p-7 shadow-card"
+                className="eko-card-lift rounded-2xl border border-slate-200 bg-white p-7 shadow-card"
               >
                 <div className="flex items-center gap-4">
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-navy-800 to-navy-600 font-serif text-xl font-bold text-gold-300">

@@ -328,7 +328,7 @@ export function SecureSubmissionForm({
       <button
         type="submit"
         disabled={submitting}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-navy-800 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-navy-700 disabled:opacity-60 sm:w-auto"
+        className="bg-eko-navy-btn eko-btn-shine inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white shadow-sm disabled:opacity-60 sm:w-auto"
       >
         <Send className="h-4 w-4" />
         {submitting

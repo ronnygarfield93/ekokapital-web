@@ -32,7 +32,7 @@ export default async function LaporanKeuanganPage() {
           {docs.map((doc) => (
             <div
               key={doc.id}
-              className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-card transition hover:border-navy-300 sm:flex-row sm:items-center"
+              className="eko-card-lift flex flex-col items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-card sm:flex-row sm:items-center"
             >
               <div className="flex items-start gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
@@ -62,7 +62,7 @@ export default async function LaporanKeuanganPage() {
                 href={doc.file_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-navy-800 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-navy-700"
+                className="bg-eko-navy-btn eko-btn-shine inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold text-white"
               >
                 <Download className="h-4 w-4 text-gold-300" />
                 {t.common.downloadPdf}

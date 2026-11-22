@@ -160,7 +160,7 @@ export function SiteHeader({ lang }: SiteHeaderProps) {
                 onClick={() => switchLang("id")}
                 title="Bahasa Indonesia"
                 aria-label="Bahasa Indonesia"
-                className={`inline-flex items-center justify-center rounded-md px-2 py-1 transition ${
+                className={`inline-flex items-center justify-center rounded-md px-2 py-1 transition duration-200 hover:-translate-y-0.5 active:scale-95 ${
                   lang === "id"
                     ? "bg-eko-gold-gradient shadow-sm ring-1 ring-gold-300/60"
                     : "opacity-65 hover:bg-white/10 hover:opacity-100"
@@ -174,7 +174,7 @@ export function SiteHeader({ lang }: SiteHeaderProps) {
                 onClick={() => switchLang("en")}
                 title="English"
                 aria-label="English"
-                className={`inline-flex items-center justify-center rounded-md px-2 py-1 transition ${
+                className={`inline-flex items-center justify-center rounded-md px-2 py-1 transition duration-200 hover:-translate-y-0.5 active:scale-95 ${
                   lang === "en"
                     ? "bg-eko-gold-gradient shadow-sm ring-1 ring-gold-300/60"
                     : "opacity-65 hover:bg-white/10 hover:opacity-100"
@@ -191,7 +191,7 @@ export function SiteHeader({ lang }: SiteHeaderProps) {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3.5 sm:px-6 lg:px-8">
         <Link
           href="/"
-          className="shrink-0 focus:outline-none"
+          className="shrink-0 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.99] focus:outline-none"
           onClick={() => setMobileOpen(false)}
         >
           <BrandLogo variant="dark" />
@@ -201,10 +201,10 @@ export function SiteHeader({ lang }: SiteHeaderProps) {
         <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Main navigation">
           <Link
             href="/"
-            className={`whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-semibold transition ${
+            className={`eko-nav-item whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold ${
               pathname === "/"
                 ? "bg-navy-50 text-navy-800"
-                : "text-slate-700 hover:bg-slate-100 hover:text-navy-900"
+                : "text-slate-700 hover:bg-navy-50/70 hover:text-navy-900"
             }`}
           >
             {t.nav.home}
@@ -222,19 +222,19 @@ export function SiteHeader({ lang }: SiteHeaderProps) {
                 onClick={() =>
                   setOpenDropdown((prev) => (prev === group.key ? null : group.key))
                 }
-                className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-navy-900"
+                className="eko-nav-item inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-navy-50/70 hover:text-navy-900"
               >
                 {group.label}
                 <ChevronDown
-                  className={`h-4 w-4 text-slate-400 transition-transform ${
-                    openDropdown === group.key ? "rotate-180 text-navy-700" : ""
+                  className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+                    openDropdown === group.key ? "rotate-180 text-gold-600" : ""
                   }`}
                 />
               </button>
 
               {openDropdown === group.key && (
                 <div className="absolute left-0 top-full pt-1.5">
-                  <div className="w-64 rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+                  <div className="eko-dropdown-enter w-64 rounded-2xl border border-navy-100 bg-white/95 p-2 shadow-2xl shadow-navy-900/15 backdrop-blur-md">
                     {group.items.map((item) => {
                       const active = pathname === item.href;
                       return (
@@ -242,13 +242,14 @@ export function SiteHeader({ lang }: SiteHeaderProps) {
                           key={item.href}
                           href={item.href}
                           onClick={() => setOpenDropdown(null)}
-                          className={`block rounded-lg px-3.5 py-2.5 text-sm font-medium transition ${
+                          className={`group flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200 hover:translate-x-1 ${
                             active
-                              ? "bg-navy-50 font-semibold text-navy-800"
-                              : "text-slate-700 hover:bg-slate-50 hover:text-navy-900"
+                              ? "bg-navy-50 font-semibold text-navy-900"
+                              : "text-slate-700 hover:bg-gradient-to-r hover:from-navy-50/80 hover:to-gold-50/50 hover:text-navy-900"
                           }`}
                         >
-                          {item.label}
+                          <span>{item.label}</span>
+                          <span className="h-1.5 w-1.5 rounded-full bg-gold-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
                         </Link>
                       );
                     })}
@@ -260,10 +261,10 @@ export function SiteHeader({ lang }: SiteHeaderProps) {
 
           <Link
             href="/berita"
-            className={`whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-semibold transition ${
+            className={`eko-nav-item whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold ${
               pathname.startsWith("/berita")
                 ? "bg-navy-50 text-navy-800"
-                : "text-slate-700 hover:bg-slate-100 hover:text-navy-900"
+                : "text-slate-700 hover:bg-navy-50/70 hover:text-navy-900"
             }`}
           >
             {t.nav.news}
@@ -271,10 +272,10 @@ export function SiteHeader({ lang }: SiteHeaderProps) {
 
           <Link
             href="/kontak"
-            className={`whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-semibold transition ${
+            className={`eko-nav-item whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold ${
               pathname === "/kontak"
                 ? "bg-navy-50 text-navy-800"
-                : "text-slate-700 hover:bg-slate-100 hover:text-navy-900"
+                : "text-slate-700 hover:bg-navy-50/70 hover:text-navy-900"
             }`}
           >
             {t.nav.contact}
@@ -285,7 +286,7 @@ export function SiteHeader({ lang }: SiteHeaderProps) {
         <div className="flex shrink-0 items-center gap-2.5">
           <Link
             href="/layanan/buka-rekening"
-            className="bg-eko-navy-btn hidden whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-navy-900/15 transition sm:inline-flex"
+            className="bg-eko-navy-btn eko-btn-shine hidden whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-navy-900/15 sm:inline-flex"
           >
             {t.nav.openAccountCta}
           </Link>

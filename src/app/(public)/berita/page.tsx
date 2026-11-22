@@ -104,7 +104,7 @@ export default async function BeritaPage({
               <Link
                 key={post.id}
                 href={`/berita/${post.slug}`}
-                className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-card transition hover:-translate-y-0.5 hover:border-navy-300 hover:shadow-card-hover"
+                className="eko-card-lift group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-card"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 text-xs">

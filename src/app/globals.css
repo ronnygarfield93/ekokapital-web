@@ -65,6 +65,147 @@
   color: transparent;
 }
 
+/* =========================================================
+   Micro-Interactions: Button Shine, Card Lift, Nav Motion
+   ========================================================= */
+
+.eko-btn-shine {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 200ms ease;
+}
+
+.eko-btn-shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -130%;
+  width: 65%;
+  height: 100%;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+  transition: left 620ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.eko-btn-shine:hover {
+  transform: translateY(-2.5px);
+  box-shadow: 0 12px 26px -8px rgba(11, 23, 46, 0.32);
+}
+
+.eko-btn-shine:hover::after {
+  left: 150%;
+}
+
+.eko-btn-shine:active {
+  transform: translateY(0px) scale(0.975);
+}
+
+.eko-card-lift {
+  transition:
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 260ms ease,
+    background-color 260ms ease;
+  will-change: transform;
+}
+
+.eko-card-lift:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 12px 28px -8px rgba(11, 23, 46, 0.13),
+    0 24px 48px -18px rgba(18, 41, 82, 0.16);
+  border-color: rgba(206, 159, 56, 0.5);
+}
+
+.eko-card-dark-lift {
+  transition:
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 260ms ease,
+    background 260ms ease;
+  will-change: transform;
+}
+
+.eko-card-dark-lift:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 16px 36px -12px rgba(4, 10, 24, 0.65),
+    0 0 0 1px rgba(220, 184, 96, 0.38);
+  border-color: rgba(220, 184, 96, 0.65);
+}
+
+.eko-nav-item {
+  position: relative;
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 200ms ease,
+    color 200ms ease;
+}
+
+.eko-nav-item::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #214a8a, #cfa03b);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.eko-nav-item:hover {
+  transform: translateY(-2px);
+}
+
+.eko-nav-item:hover::after {
+  transform: scaleX(1);
+}
+
+@keyframes eko-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.eko-dropdown-enter {
+  animation: eko-dropdown-in 200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes eko-float-slow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -14px, 0) scale(1.04);
+  }
+}
+
+.eko-ambient-float {
+  animation: eko-float-slow 9s ease-in-out infinite;
+}
+
+.eko-ambient-float-delayed {
+  animation: eko-float-slow 11s ease-in-out 2.5s infinite;
+}
+
 @keyframes eko-marquee {
   0% {
     transform: translateX(0%);
@@ -85,7 +226,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .eko-marquee-track {
-    animation: none;
+  .eko-marquee-track,
+  .eko-ambient-float,
+  .eko-ambient-float-delayed,
+  .eko-dropdown-enter {
+    animation: none !important;
+  }
+  .eko-btn-shine:hover,
+  .eko-card-lift:hover,
+  .eko-card-dark-lift:hover,
+  .eko-nav-item:hover {
+    transform: none !important;
   }
 }

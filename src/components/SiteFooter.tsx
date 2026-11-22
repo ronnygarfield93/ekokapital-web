@@ -33,7 +33,7 @@ export function SiteFooter({ lang }: SiteFooterProps) {
                   rel="noopener noreferrer"
                   aria-label={lang === "en" ? reg.nameEn : reg.nameId}
                   title={lang === "en" ? reg.nameEn : reg.nameId}
-                  className="inline-flex h-9 items-center justify-center rounded-lg border border-white/15 bg-white/95 px-3 py-1.5 shadow-sm transition duration-150 hover:-translate-y-0.5 hover:bg-white hover:shadow-md"
+                  className="inline-flex h-9 items-center justify-center rounded-lg border border-white/15 bg-white/95 px-3 py-1.5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:scale-105 hover:border-gold-300 hover:bg-white hover:shadow-lg hover:shadow-black/25 active:scale-95"
                 >
                   <img
                     src={reg.logo}

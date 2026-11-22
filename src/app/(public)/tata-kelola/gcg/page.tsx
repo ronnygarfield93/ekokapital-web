@@ -72,7 +72,7 @@ export default async function GcgPage() {
             {docs.map((doc) => (
               <div
                 key={doc.id}
-                className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-card"
+                className="eko-card-lift flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-card"
               >
                 <div className="flex items-start gap-3.5">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700">

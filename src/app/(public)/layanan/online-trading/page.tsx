@@ -132,7 +132,7 @@ export default async function OnlineTradingPage() {
                 href={COMPANY_INFO.playStoreUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between rounded-xl bg-gold-500 px-5 py-4 text-sm font-bold text-navy-950 transition hover:bg-gold-400"
+                className="bg-eko-gold-gradient eko-btn-shine flex items-center justify-between rounded-xl px-5 py-4 text-sm font-bold text-navy-950"
               >
                 <div>
                   <span className="block text-[10px] uppercase tracking-wider opacity-80">
@@ -147,7 +147,7 @@ export default async function OnlineTradingPage() {
                 href={COMPANY_INFO.appStoreUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between rounded-xl border border-white/20 bg-white/10 px-5 py-4 text-sm font-bold text-white transition hover:bg-white/15"
+                className="eko-btn-shine flex items-center justify-between rounded-xl border border-white/20 bg-white/10 px-5 py-4 text-sm font-bold text-white hover:bg-white/15"
               >
                 <div>
                   <span className="block text-[10px] uppercase tracking-wider text-navy-200">
