@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev -H 0.0.0.0 --port 3000",
     "build": "next build",
+    "postbuild": "node -e \"const fs=require('node:fs');fs.mkdirSync('data',{recursive:true});fs.mkdirSync('uploads',{recursive:true});if(fs.existsSync('.next/standalone')){fs.cpSync('.next/static','.next/standalone/.next/static',{recursive:true});fs.cpSync('public','.next/standalone/public',{recursive:true});}\"",
     "start": "next start --port 3000",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
