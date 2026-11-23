@@ -59,8 +59,18 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/admin/:path*",
-        headers: noStoreHeaders,
+        source: "/portal-es-internal",
+        headers: [
+          ...noStoreHeaders,
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ],
+      },
+      {
+        source: "/portal-es-internal/:path*",
+        headers: [
+          ...noStoreHeaders,
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ],
       },
       {
         source: "/api/admin/:path*",

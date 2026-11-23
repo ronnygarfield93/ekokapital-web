@@ -117,7 +117,7 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
     ]);
 
     if (pRes.status === 401) {
-      router.push("/admin/login");
+      window.location.href = "/portal-es-internal";
       return;
     }
 
@@ -144,8 +144,7 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
 
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST" });
-    router.push("/admin/login");
-    router.refresh();
+    window.location.href = "/portal-es-internal";
   };
 
   const handleCreatePost = async (e: React.FormEvent) => {

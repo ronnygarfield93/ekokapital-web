@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Lock, ShieldCheck } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 
-export default function AdminLoginPage() {
+export function AdminLoginClient() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,7 +27,6 @@ export default function AdminLoginPage() {
       if (!res.ok) {
         setError(json.error || "Login gagal.");
       } else {
-        router.push("/admin");
         router.refresh();
       }
     } catch {
@@ -62,33 +61,41 @@ export default function AdminLoginPage() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <form onSubmit={handleSubmit} autoComplete="off" className="mt-6 space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+              <label
+                htmlFor="portal-email"
+                className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-600"
+              >
                 Email Admin
               </label>
               <input
+                id="portal-email"
+                name="portal_email_entry"
                 type="email"
                 required
-                autoComplete="username"
+                autoComplete="off"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@ekokapital.com"
                 className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-navy-600 focus:ring-2 focus:ring-navy-500/20"
               />
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+              <label
+                htmlFor="portal-password"
+                className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-600"
+              >
                 Kata Sandi
               </label>
               <input
+                id="portal-password"
+                name="portal_pass_entry"
                 type="password"
                 required
-                autoComplete="current-password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
                 className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-navy-600 focus:ring-2 focus:ring-navy-500/20"
               />
             </div>

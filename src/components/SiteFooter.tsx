@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Lock, Mail, MapPin, Phone, ShieldCheck } from "lucide-react";
+import { Mail, MapPin, Phone, ShieldCheck } from "lucide-react";
 import { BrandLogo } from "./BrandLogo";
 import { dictionary } from "@/lib/i18n";
 import { COMPANY_INFO, REGULATORS } from "@/lib/company-data";
@@ -191,13 +191,6 @@ export function SiteFooter({ lang }: SiteFooterProps) {
             </Link>
             <Link href="/legal/disclaimer-etop" className="transition hover:text-gold-300">
               {t.footer.etopDisclaimer}
-            </Link>
-            <Link
-              href="/admin/login"
-              className="inline-flex items-center gap-1 text-slate-500 transition hover:text-gold-300"
-            >
-              <Lock className="h-3 w-3" />
-              {t.footer.adminPortal}
             </Link>
           </div>
         </div>
