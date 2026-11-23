@@ -6,6 +6,7 @@ import {
   getDb,
 } from "@/lib/db";
 import { RATE_LIMITS } from "@/lib/rate-limit-config";
+import { sendInternalSubmissionAlert } from "@/lib/mailer";
 import {
   generateTicketCode,
   getClientIp,
@@ -143,6 +144,19 @@ export async function POST(req: NextRequest) {
     data.message,
     sha256(ip)
   );
+
+  // Send internal email alert ONLY to PT Ekokapital Sekuritas (non-fatal if SMTP unavailable)
+  await sendInternalSubmissionAlert({
+    ticketCode,
+    type: data.type,
+    isAnonymous,
+    fullName: isAnonymous ? null : data.full_name || null,
+    email: isAnonymous ? null : data.email || null,
+    phone: isAnonymous ? null : data.phone || null,
+    clientCode: data.client_code || null,
+    subject: data.subject,
+    message: data.message,
+  });
 
   return NextResponse.json(
     {
