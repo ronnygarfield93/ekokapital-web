@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -13,11 +13,13 @@ import {
   KeyRound,
   LayoutDashboard,
   LogOut,
+  Pencil,
   Plus,
   ShieldCheck,
   Trash2,
   Upload,
   Users,
+  X,
 } from "lucide-react";
 import { BrandLogo } from "./BrandLogo";
 import type {
@@ -67,6 +69,11 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
   );
 
   // Document form state
+  const docFormRef = useRef<HTMLFormElement | null>(null);
+  const docFileInputRef = useRef<HTMLInputElement | null>(null);
+  const [editingDocId, setEditingDocId] = useState<number | null>(null);
+  const [editingDocCurrentUrl, setEditingDocCurrentUrl] = useState("");
+  const [docSaving, setDocSaving] = useState(false);
   const [docCat, setDocCat] = useState<DocumentCategory>("financial_report");
   const [docYear, setDocYear] = useState(String(new Date().getFullYear()));
   const [docTitleId, setDocTitleId] = useState("");
@@ -183,40 +190,88 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
     loadAll();
   };
 
-  const handleCreateDoc = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const fd = new FormData();
-    fd.append("category", docCat);
-    if (docYear) fd.append("year", docYear);
-    fd.append("title_id", docTitleId);
-    fd.append("title_en", docTitleEn || docTitleId);
-    fd.append("description_id", docDescId);
-    fd.append("description_en", docDescEn || docDescId);
-    if (docFile) {
-      fd.append("file", docFile);
-    } else if (docUrl) {
-      fd.append("file_url", docUrl);
-    }
-
-    const res = await fetch("/api/admin/documents", {
-      method: "POST",
-      body: fd,
-    });
-    const j = await res.json();
-    if (!res.ok) return flash(j.error || "Gagal mengunggah dokumen.", true);
+  const resetDocForm = () => {
+    setEditingDocId(null);
+    setEditingDocCurrentUrl("");
+    setDocCat("financial_report");
+    setDocYear(String(new Date().getFullYear()));
     setDocTitleId("");
     setDocTitleEn("");
     setDocDescId("");
     setDocDescEn("");
     setDocUrl("");
     setDocFile(null);
-    flash("Dokumen PDF berhasil ditambahkan!");
-    loadAll();
+    if (docFileInputRef.current) {
+      docFileInputRef.current.value = "";
+    }
+  };
+
+  const startEditDoc = (doc: DocumentItem) => {
+    setEditingDocId(doc.id);
+    setEditingDocCurrentUrl(doc.file_url);
+    setDocCat(doc.category);
+    setDocYear(doc.year ? String(doc.year) : "");
+    setDocTitleId(doc.title_id);
+    setDocTitleEn(doc.title_en);
+    setDocDescId(doc.description_id || "");
+    setDocDescEn(doc.description_en || "");
+    setDocUrl(doc.file_url);
+    setDocFile(null);
+    if (docFileInputRef.current) {
+      docFileInputRef.current.value = "";
+    }
+    setStatusMsg(null);
+    setErrorMsg(null);
+    docFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleSaveDoc = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDocSaving(true);
+    try {
+      const fd = new FormData();
+      if (editingDocId !== null) {
+        fd.append("id", String(editingDocId));
+      }
+      fd.append("category", docCat);
+      if (docYear.trim()) fd.append("year", docYear.trim());
+      fd.append("title_id", docTitleId);
+      fd.append("title_en", docTitleEn || docTitleId);
+      fd.append("description_id", docDescId);
+      fd.append("description_en", docDescEn || docDescId);
+      if (docFile) {
+        fd.append("file", docFile);
+      } else if (docUrl.trim()) {
+        fd.append("file_url", docUrl.trim());
+      }
+
+      const isEdit = editingDocId !== null;
+      const res = await fetch("/api/admin/documents", {
+        method: isEdit ? "PUT" : "POST",
+        body: fd,
+      });
+      const j = await res.json();
+      if (!res.ok) return flash(j.error || "Gagal menyimpan dokumen.", true);
+      resetDocForm();
+      flash(
+        isEdit
+          ? docFile
+            ? "Dokumen & file PDF baru berhasil diperbarui!"
+            : "Perubahan dokumen berhasil disimpan!"
+          : "Dokumen PDF berhasil ditambahkan!"
+      );
+      loadAll();
+    } finally {
+      setDocSaving(false);
+    }
   };
 
   const handleDeleteDoc = async (id: number) => {
     if (!confirm("Hapus dokumen ini?")) return;
     await fetch(`/api/admin/documents?id=${id}`, { method: "DELETE" });
+    if (editingDocId === id) {
+      resetDocForm();
+    }
     flash("Dokumen dihapus.");
     loadAll();
   };
@@ -662,13 +717,54 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
             {tab === "documents" && (
               <div className="space-y-6">
                 <form
-                  onSubmit={handleCreateDoc}
-                  className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+                  ref={docFormRef}
+                  onSubmit={handleSaveDoc}
+                  className={`space-y-4 rounded-2xl border bg-white p-6 shadow-sm ${
+                    editingDocId !== null
+                      ? "border-gold-400 ring-1 ring-gold-300"
+                      : "border-slate-200"
+                  }`}
                 >
-                  <h2 className="flex items-center gap-2 text-lg font-bold text-navy-900">
-                    <Upload className="h-5 w-5 text-gold-600" />
-                    Unggah Laporan Keuangan / RUPS / GCG / Formulir (PDF)
-                  </h2>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="flex items-center gap-2 text-lg font-bold text-navy-900">
+                      {editingDocId !== null ? (
+                        <>
+                          <Pencil className="h-5 w-5 text-gold-600" />
+                          Edit Dokumen &amp; Ganti File PDF
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-5 w-5 text-gold-600" />
+                          Unggah Laporan Keuangan / RUPS / GCG / Formulir (PDF)
+                        </>
+                      )}
+                    </h2>
+                    {editingDocId !== null && (
+                      <button
+                        type="button"
+                        onClick={resetDocForm}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                        Batal Edit
+                      </button>
+                    )}
+                  </div>
+
+                  {editingDocId !== null && (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+                      <p className="font-semibold">
+                        Sedang mengedit dokumen #{editingDocId}
+                      </p>
+                      <p className="mt-1 break-all text-amber-800">
+                        File saat ini:{" "}
+                        <span className="font-mono">{editingDocCurrentUrl}</span>
+                      </p>
+                      <p className="mt-1 text-amber-800">
+                        Pilih file PDF baru di bawah untuk langsung mengganti link/file lama ke server lokal, atau biarkan kosong jika hanya ingin mengubah judul/kategori.
+                      </p>
+                    </div>
+                  )}
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
@@ -726,35 +822,85 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
                     </div>
                     <div>
                       <label className="mb-1 block text-xs font-semibold text-slate-600">
-                        Unggah File PDF (Maks 20MB)
+                        Deskripsi Singkat (ID, Opsional)
                       </label>
                       <input
+                        type="text"
+                        value={docDescId}
+                        onChange={(e) => setDocDescId(e.target.value)}
+                        placeholder="Keterangan singkat dokumen..."
+                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-semibold text-slate-600">
+                        Short Description (EN, Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={docDescEn}
+                        onChange={(e) => setDocDescEn(e.target.value)}
+                        placeholder="Brief document description..."
+                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-semibold text-slate-600">
+                        {editingDocId !== null
+                          ? "Upload Ulang File PDF Baru (Opsional, Maks 20MB)"
+                          : "Unggah File PDF (Maks 20MB)"}
+                      </label>
+                      <input
+                        ref={docFileInputRef}
                         type="file"
                         accept="application/pdf"
                         onChange={(e) => setDocFile(e.target.files?.[0] ?? null)}
                         className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-xs"
                       />
+                      {docFile && (
+                        <p className="mt-1 text-[11px] font-medium text-emerald-700">
+                          File dipilih: {docFile.name} ({Math.max(1, Math.round(docFile.size / 1024))} KB)
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="mb-1 block text-xs font-semibold text-slate-600">
-                        Atau URL PDF Eksternal (HTTPS)
+                        {editingDocId !== null
+                          ? "URL File Saat Ini / URL HTTPS Pengganti"
+                          : "Atau URL PDF Eksternal (HTTPS)"}
                       </label>
                       <input
-                        type="url"
+                        type="text"
                         value={docUrl}
                         onChange={(e) => setDocUrl(e.target.value)}
-                        placeholder="https://..."
+                        placeholder="https://... atau /api/uploads/..."
                         className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
                       />
                     </div>
                   </div>
 
-                  <button
-                    type="submit"
-                    className="rounded-xl bg-navy-800 px-5 py-2.5 text-sm font-bold text-white hover:bg-navy-700"
-                  >
-                    Simpan Dokumen
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="submit"
+                      disabled={docSaving}
+                      className="rounded-xl bg-navy-800 px-5 py-2.5 text-sm font-bold text-white hover:bg-navy-700 disabled:opacity-60"
+                    >
+                      {docSaving
+                        ? "Menyimpan..."
+                        : editingDocId !== null
+                          ? "Simpan Perubahan Dokumen"
+                          : "Simpan Dokumen"}
+                    </button>
+                    {editingDocId !== null && (
+                      <button
+                        type="button"
+                        onClick={resetDocForm}
+                        className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                      >
+                        Batal
+                      </button>
+                    )}
+                  </div>
                 </form>
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -762,42 +908,69 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
                     Daftar Dokumen ({documents.length})
                   </h3>
                   <div className="mt-4 divide-y divide-slate-100">
-                    {documents.map((d) => (
-                      <div
-                        key={d.id}
-                        className="flex items-center justify-between gap-4 py-3"
-                      >
-                        <div>
-                          <div className="flex items-center gap-2 text-xs">
-                            <span className="rounded bg-gold-100 px-2 py-0.5 font-bold uppercase text-gold-800">
-                              {d.category}
-                            </span>
-                            {d.year && <span className="font-mono">{d.year}</span>}
-                            <span className="text-slate-400">{d.file_size}</span>
+                    {documents.map((d) => {
+                      const isLocal = d.file_url.startsWith("/api/uploads/");
+                      const isEditing = editingDocId === d.id;
+                      return (
+                        <div
+                          key={d.id}
+                          className={`flex flex-wrap items-center justify-between gap-4 rounded-xl px-2 py-3 transition ${
+                            isEditing ? "bg-gold-50/70 ring-1 ring-gold-300" : ""
+                          }`}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              <span className="rounded bg-gold-100 px-2 py-0.5 font-bold uppercase text-gold-800">
+                                {d.category}
+                              </span>
+                              {d.year && <span className="font-mono">{d.year}</span>}
+                              <span className="text-slate-400">{d.file_size}</span>
+                              {isLocal ? (
+                                <span className="rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                                  File Lokal
+                                </span>
+                              ) : (
+                                <span className="rounded bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                                  URL Eksternal
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-1 text-sm font-bold text-navy-900">
+                              {d.title_id}
+                            </p>
+                            <p className="mt-0.5 truncate text-[11px] font-mono text-slate-400">
+                              {d.file_url}
+                            </p>
                           </div>
-                          <p className="mt-1 text-sm font-bold text-navy-900">
-                            {d.title_id}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => startEditDoc(d)}
+                              className="inline-flex items-center gap-1 rounded-lg border border-navy-200 bg-navy-50/60 px-3 py-1.5 text-xs font-semibold text-navy-800 hover:bg-navy-100"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                              Edit / Ganti PDF
+                            </button>
+                            <a
+                              href={d.file_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-navy-700 hover:bg-slate-50"
+                            >
+                              Buka
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteDoc(d.id)}
+                              className="rounded-lg p-2 text-red-600 hover:bg-red-50"
+                              title="Hapus"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <a
-                            href={d.file_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-navy-700 hover:bg-slate-50"
-                          >
-                            Buka
-                          </a>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteDoc(d.id)}
-                            className="rounded-lg p-2 text-red-600 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
