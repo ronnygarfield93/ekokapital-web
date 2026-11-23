@@ -5,6 +5,7 @@ import { verifyFileMagicBytes } from "./security";
 
 const MAX_PDF_BYTES = 20 * 1024 * 1024; // 20 MB
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_INSTALLER_BYTES = 150 * 1024 * 1024; // 150 MB
 
 export function getUploadsDir(): string {
   const configured = process.env.UPLOADS_DIR || "./uploads";
@@ -19,26 +20,35 @@ export function getUploadsDir(): string {
 
 export async function saveSecureUpload(
   file: File,
-  kind: "pdf" | "image"
-): Promise<{ filename: string; url: string; mime: string; sizeBytes: number }> {
-  const maxBytes = kind === "pdf" ? MAX_PDF_BYTES : MAX_IMAGE_BYTES;
+  kind: "pdf" | "image" | "installer"
+): Promise<{ filename: string; url: string; mime: string; ext: string; sizeBytes: number }> {
+  const maxBytes =
+    kind === "pdf"
+      ? MAX_PDF_BYTES
+      : kind === "installer"
+        ? MAX_INSTALLER_BYTES
+        : MAX_IMAGE_BYTES;
   if (file.size <= 0 || file.size > maxBytes) {
     throw new Error(
       kind === "pdf"
         ? "Ukuran file PDF harus antara 1 byte hingga 20 MB."
-        : "Ukuran file gambar harus antara 1 byte hingga 5 MB."
+        : kind === "installer"
+          ? "Ukuran file installer harus antara 1 byte hingga 150 MB."
+          : "Ukuran file gambar harus antara 1 byte hingga 5 MB."
     );
   }
 
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
-  const check = verifyFileMagicBytes(buffer, kind);
+  const check = verifyFileMagicBytes(buffer, kind, file.name);
 
   if (!check.valid) {
     throw new Error(
       kind === "pdf"
         ? "File tidak valid. Hanya dokumen PDF asli yang diizinkan."
-        : "File tidak valid. Hanya gambar PNG, JPG, atau WebP asli yang diizinkan."
+        : kind === "installer"
+          ? "File tidak valid. Hanya installer .exe, .msi, .zip, .dmg, atau .pkg asli yang diizinkan."
+          : "File tidak valid. Hanya gambar PNG, JPG, atau WebP asli yang diizinkan."
     );
   }
 
@@ -50,13 +60,14 @@ export async function saveSecureUpload(
     filename: safeName,
     url: `/api/uploads/${safeName}`,
     mime: check.mime,
+    ext: check.ext,
     sizeBytes: buffer.length,
   };
 }
 
 export function resolveSafeUploadPath(filename: string): string | null {
   // Strict allowlist: digits, letters, hyphens, single extension
-  if (!/^[a-zA-Z0-9-]+\.(pdf|png|jpg|webp)$/.test(filename)) {
+  if (!/^[a-zA-Z0-9-]+\.(pdf|png|jpg|webp|zip|exe|msi|dmg|pkg)$/.test(filename)) {
     return null;
   }
   const baseDir = getUploadsDir();

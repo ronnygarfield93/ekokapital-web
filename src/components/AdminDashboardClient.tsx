@@ -74,6 +74,7 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
   const [editingDocId, setEditingDocId] = useState<number | null>(null);
   const [editingDocCurrentUrl, setEditingDocCurrentUrl] = useState("");
   const [docSaving, setDocSaving] = useState(false);
+  const [docFilterCat, setDocFilterCat] = useState<"all" | DocumentCategory>("all");
   const [docCat, setDocCat] = useState<DocumentCategory>("financial_report");
   const [docYear, setDocYear] = useState(String(new Date().getFullYear()));
   const [docTitleId, setDocTitleId] = useState("");
@@ -256,9 +257,9 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
       flash(
         isEdit
           ? docFile
-            ? "Dokumen & file PDF baru berhasil diperbarui!"
-            : "Perubahan dokumen berhasil disimpan!"
-          : "Dokumen PDF berhasil ditambahkan!"
+            ? "Data & file baru berhasil diperbarui!"
+            : "Perubahan dokumen/aplikasi berhasil disimpan!"
+          : "Dokumen/aplikasi berhasil ditambahkan!"
       );
       loadAll();
     } finally {
@@ -730,12 +731,14 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
                       {editingDocId !== null ? (
                         <>
                           <Pencil className="h-5 w-5 text-gold-600" />
-                          Edit Dokumen &amp; Ganti File PDF
+                          {docCat === "etop_desktop"
+                            ? "Edit Aplikasi e-TOP Desktop & Ganti Installer"
+                            : "Edit Dokumen & Ganti File PDF"}
                         </>
                       ) : (
                         <>
                           <Upload className="h-5 w-5 text-gold-600" />
-                          Unggah Laporan Keuangan / RUPS / GCG / Formulir (PDF)
+                          Unggah Dokumen PDF / Installer e-TOP Desktop
                         </>
                       )}
                     </h2>
@@ -761,7 +764,9 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
                         <span className="font-mono">{editingDocCurrentUrl}</span>
                       </p>
                       <p className="mt-1 text-amber-800">
-                        Pilih file PDF baru di bawah untuk langsung mengganti link/file lama ke server lokal, atau biarkan kosong jika hanya ingin mengubah judul/kategori.
+                        {docCat === "etop_desktop"
+                          ? "Pilih file installer baru (.exe / .msi / .zip / .dmg / .pkg) di bawah untuk langsung mengganti link/file lama ke server lokal, atau masukkan URL HTTPS baru."
+                          : "Pilih file PDF baru di bawah untuk langsung mengganti link/file lama ke server lokal, atau biarkan kosong jika hanya ingin mengubah judul/kategori."}
                       </p>
                     </div>
                   )}
@@ -780,7 +785,8 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
                         <option value="rups">RUPS</option>
                         <option value="gcg">Tata Kelola (GCG)</option>
                         <option value="form">Formulir Nasabah</option>
-                        <option value="etop_manual">Panduan e-TOP</option>
+                        <option value="etop_manual">Panduan e-TOP (PDF)</option>
+                        <option value="etop_desktop">Aplikasi e-TOP Desktop (Installer)</option>
                       </select>
                     </div>
                     <div>
@@ -846,14 +852,22 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
                     </div>
                     <div>
                       <label className="mb-1 block text-xs font-semibold text-slate-600">
-                        {editingDocId !== null
-                          ? "Upload Ulang File PDF Baru (Opsional, Maks 20MB)"
-                          : "Unggah File PDF (Maks 20MB)"}
+                        {docCat === "etop_desktop"
+                          ? editingDocId !== null
+                            ? "Upload Ulang Installer Baru (.exe/.msi/.zip/.dmg/.pkg, Maks 150MB)"
+                            : "Unggah File Installer (.exe/.msi/.zip/.dmg/.pkg, Maks 150MB)"
+                          : editingDocId !== null
+                            ? "Upload Ulang File PDF Baru (Opsional, Maks 20MB)"
+                            : "Unggah File PDF (Maks 20MB)"}
                       </label>
                       <input
                         ref={docFileInputRef}
                         type="file"
-                        accept="application/pdf"
+                        accept={
+                          docCat === "etop_desktop"
+                            ? ".exe,.msi,.zip,.dmg,.pkg,application/zip,application/octet-stream"
+                            : "application/pdf"
+                        }
                         onChange={(e) => setDocFile(e.target.files?.[0] ?? null)}
                         className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-xs"
                       />
@@ -867,7 +881,9 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
                       <label className="mb-1 block text-xs font-semibold text-slate-600">
                         {editingDocId !== null
                           ? "URL File Saat Ini / URL HTTPS Pengganti"
-                          : "Atau URL PDF Eksternal (HTTPS)"}
+                          : docCat === "etop_desktop"
+                            ? "Atau URL Download Installer Eksternal (HTTPS)"
+                            : "Atau URL PDF Eksternal (HTTPS)"}
                       </label>
                       <input
                         type="text"
@@ -904,11 +920,41 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
                 </form>
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <h3 className="font-bold text-navy-900">
-                    Daftar Dokumen ({documents.length})
-                  </h3>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="font-bold text-navy-900">
+                      Daftar Dokumen &amp; Aplikasi ({documents.length})
+                    </h3>
+                    <div className="flex flex-wrap gap-1.5 text-xs">
+                      {(
+                        [
+                          ["all", "Semua"],
+                          ["etop_desktop", "e-TOP Desktop"],
+                          ["etop_manual", "Panduan e-TOP"],
+                          ["financial_report", "Lap. Keuangan"],
+                          ["rups", "RUPS"],
+                          ["gcg", "GCG"],
+                          ["form", "Formulir"],
+                        ] as const
+                      ).map(([key, label]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setDocFilterCat(key)}
+                          className={`rounded-lg px-2.5 py-1 font-semibold transition ${
+                            docFilterCat === key
+                              ? "bg-navy-800 text-white"
+                              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div className="mt-4 divide-y divide-slate-100">
-                    {documents.map((d) => {
+                    {documents
+                      .filter((d) => docFilterCat === "all" || d.category === docFilterCat)
+                      .map((d) => {
                       const isLocal = d.file_url.startsWith("/api/uploads/");
                       const isEditing = editingDocId === d.id;
                       return (
@@ -920,7 +966,13 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
                         >
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2 text-xs">
-                              <span className="rounded bg-gold-100 px-2 py-0.5 font-bold uppercase text-gold-800">
+                              <span
+                                className={`rounded px-2 py-0.5 font-bold uppercase ${
+                                  d.category === "etop_desktop"
+                                    ? "bg-navy-100 text-navy-800"
+                                    : "bg-gold-100 text-gold-800"
+                                }`}
+                              >
                                 {d.category}
                               </span>
                               {d.year && <span className="font-mono">{d.year}</span>}
@@ -949,7 +1001,7 @@ export function AdminDashboardClient({ admin }: { admin: AdminUser }) {
                               className="inline-flex items-center gap-1 rounded-lg border border-navy-200 bg-navy-50/60 px-3 py-1.5 text-xs font-semibold text-navy-800 hover:bg-navy-100"
                             >
                               <Pencil className="h-3.5 w-3.5" />
-                              Edit / Ganti PDF
+                              Edit / Ganti File
                             </button>
                             <a
                               href={d.file_url}

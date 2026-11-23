@@ -24,7 +24,8 @@ export type DocumentCategory =
   | "rups"
   | "gcg"
   | "form"
-  | "etop_manual";
+  | "etop_manual"
+  | "etop_desktop";
 
 export interface DocumentItem {
   id: number;

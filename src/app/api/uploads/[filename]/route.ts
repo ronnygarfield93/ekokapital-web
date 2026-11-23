@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { Readable } from "node:stream";
 import { NextRequest, NextResponse } from "next/server";
 import { checkPersistentRateLimit } from "@/lib/db";
 import { RATE_LIMITS } from "@/lib/rate-limit-config";
@@ -11,6 +12,11 @@ const MIME_MAP: Record<string, string> = {
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".webp": "image/webp",
+  ".zip": "application/zip",
+  ".exe": "application/vnd.microsoft.portable-executable",
+  ".msi": "application/x-msi",
+  ".dmg": "application/x-apple-diskimage",
+  ".pkg": "application/octet-stream",
 };
 
 const INLINE_IMAGE_EXTS = new Set([".png", ".jpg", ".webp"]);
@@ -89,13 +95,15 @@ export async function GET(
   }
 
   const contentType = MIME_MAP[ext] || "application/octet-stream";
-  const buffer = fs.readFileSync(fullPath);
+  const stat = fs.statSync(fullPath);
+  const webStream = Readable.toWeb(fs.createReadStream(fullPath)) as ReadableStream;
 
-  // VA-07: Isolate uploaded files with strict sandbox CSP & safe attachment disposition for PDFs
-  return new NextResponse(buffer, {
+  // VA-07: Stream files with strict sandbox CSP & safe attachment disposition for downloads
+  return new NextResponse(webStream, {
     status: 200,
     headers: {
       "Content-Type": contentType,
+      "Content-Length": String(stat.size),
       "X-Content-Type-Options": "nosniff",
       "Content-Security-Policy": "default-src 'none'; sandbox",
       "Content-Disposition": isInlineImage

@@ -12,6 +12,7 @@ const categoryEnum = z.enum([
   "gcg",
   "form",
   "etop_manual",
+  "etop_desktop",
 ]);
 
 function deleteLocalUploadIfExists(fileUrl: string | null | undefined): void {
@@ -26,9 +27,10 @@ function deleteLocalUploadIfExists(fileUrl: string | null | undefined): void {
   }
 }
 
-function formatPdfSize(sizeBytes: number): string {
+function formatUploadedFileSize(sizeBytes: number, ext: string): string {
+  const label = ext.replace(/^\./, "").toUpperCase() || "FILE";
   const kb = Math.round(sizeBytes / 1024);
-  return kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB PDF` : `${kb} KB PDF`;
+  return kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB ${label}` : `${kb} KB ${label}`;
 }
 
 export async function GET() {
@@ -79,10 +81,10 @@ export async function POST(req: NextRequest) {
       const file = form.get("file");
 
       if (file instanceof File && file.size > 0) {
-        const uploaded = await saveSecureUpload(file, "pdf");
+        const uploadKind = category === "etop_desktop" ? "installer" : "pdf";
+        const uploaded = await saveSecureUpload(file, uploadKind);
         fileUrl = uploaded.url;
-        const kb = Math.round(uploaded.sizeBytes / 1024);
-        fileSize = kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB PDF` : `${kb} KB PDF`;
+        fileSize = formatUploadedFileSize(uploaded.sizeBytes, uploaded.ext);
       } else if (externalUrl) {
         if (!isSafeUrl(externalUrl)) {
           return NextResponse.json(
@@ -91,9 +93,15 @@ export async function POST(req: NextRequest) {
           );
         }
         fileUrl = externalUrl;
+        fileSize = category === "etop_desktop" ? "Installer" : "PDF";
       } else {
         return NextResponse.json(
-          { error: "Unggah file PDF atau masukkan URL HTTPS dokumen." },
+          {
+            error:
+              category === "etop_desktop"
+                ? "Unggah file installer (.exe/.msi/.zip/.dmg/.pkg) atau masukkan URL HTTPS."
+                : "Unggah file PDF atau masukkan URL HTTPS dokumen.",
+          },
           { status: 400 }
         );
       }
@@ -244,9 +252,10 @@ export async function PUT(req: NextRequest) {
 
   try {
     if (uploadedFile) {
-      const uploaded = await saveSecureUpload(uploadedFile, "pdf");
+      const uploadKind = parsedCat.data === "etop_desktop" ? "installer" : "pdf";
+      const uploaded = await saveSecureUpload(uploadedFile, uploadKind);
       nextFileUrl = uploaded.url;
-      nextFileSize = formatPdfSize(uploaded.sizeBytes);
+      nextFileSize = formatUploadedFileSize(uploaded.sizeBytes, uploaded.ext);
       shouldDeleteOldLocal = existing.file_url !== nextFileUrl;
     } else if (incomingUrl && incomingUrl !== existing.file_url) {
       if (!isSafeUrl(incomingUrl)) {
@@ -256,12 +265,16 @@ export async function PUT(req: NextRequest) {
         );
       }
       nextFileUrl = incomingUrl;
-      nextFileSize = incomingUrl.startsWith("/api/uploads/") ? existing.file_size : "PDF";
+      nextFileSize = incomingUrl.startsWith("/api/uploads/")
+        ? existing.file_size
+        : parsedCat.data === "etop_desktop"
+          ? "Installer"
+          : "PDF";
       shouldDeleteOldLocal = true;
     }
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Gagal memproses file PDF baru." },
+      { error: err instanceof Error ? err.message : "Gagal memproses file baru." },
       { status: 400 }
     );
   }

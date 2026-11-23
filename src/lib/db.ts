@@ -264,6 +264,55 @@ function seedInitialData(db: DatabaseSyncType) {
     }
   }
 
+  // 3b. Ensure e-TOP Desktop installers exist (also backfills existing databases)
+  const desktopCount = db
+    .prepare("SELECT COUNT(*) as c FROM documents WHERE category = 'etop_desktop'")
+    .get() as { c: number };
+  if (desktopCount.c === 0) {
+    const stmtDesktop = db.prepare(`
+      INSERT INTO documents (
+        category, year, title_id, title_en, description_id, description_en,
+        file_url, file_size, published
+      ) VALUES ('etop_desktop', NULL, ?, ?, ?, ?, ?, ?, 1)
+    `);
+    const defaultDesktopApps = [
+      {
+        title_id: "Microsoft Windows 10 / 11 (64-bit)",
+        title_en: "Microsoft Windows 10 / 11 (64-bit)",
+        description_id: "Installer aplikasi desktop e-TOP untuk Windows 64-bit",
+        description_en: "e-TOP desktop installer for Windows 64-bit",
+        file_url: "https://ekokapital.com/download/435/",
+        file_size: "Windows 64-bit",
+      },
+      {
+        title_id: "Apple macOS Installer",
+        title_en: "Apple macOS Installer",
+        description_id: "Installer aplikasi desktop e-TOP untuk macOS",
+        description_en: "e-TOP desktop installer for macOS",
+        file_url: "https://ekokapital.com/download/496/",
+        file_size: "macOS",
+      },
+      {
+        title_id: "Microsoft Windows Legacy (32-bit)",
+        title_en: "Microsoft Windows Legacy (32-bit)",
+        description_id: "Installer aplikasi desktop e-TOP untuk Windows 32-bit",
+        description_en: "e-TOP desktop installer for Windows 32-bit",
+        file_url: "https://ekokapital.com/download/442/",
+        file_size: "Windows 32-bit",
+      },
+    ];
+    for (const app of defaultDesktopApps) {
+      stmtDesktop.run(
+        app.title_id,
+        app.title_en,
+        app.description_id,
+        app.description_en,
+        app.file_url,
+        app.file_size
+      );
+    }
+  }
+
   // 4. Seed WPPE staff
   const wppeCount = db
     .prepare("SELECT COUNT(*) as c FROM wppe_staff")

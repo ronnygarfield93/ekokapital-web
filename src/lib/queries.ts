@@ -56,10 +56,12 @@ export function getPostBySlug(slug: string): PostItem | null {
 export function getPublishedDocuments(category?: DocumentCategory): DocumentItem[] {
   const db = getDb();
   if (category) {
+    const orderBy =
+      category === "etop_desktop" ? "id ASC" : "year DESC, id DESC";
     return toPlainList<DocumentItem>(
       db
         .prepare(
-          "SELECT * FROM documents WHERE published = 1 AND category = ? ORDER BY year DESC, id DESC"
+          `SELECT * FROM documents WHERE published = 1 AND category = ? ORDER BY ${orderBy}`
         )
         .all(category)
     );

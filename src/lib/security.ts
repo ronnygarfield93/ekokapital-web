@@ -156,7 +156,8 @@ export function slugify(text: string): string {
 
 export function verifyFileMagicBytes(
   buffer: Buffer,
-  expectedKind: "pdf" | "image"
+  expectedKind: "pdf" | "image" | "installer",
+  originalName = ""
 ): { valid: boolean; ext: string; mime: string } {
   if (expectedKind === "pdf") {
     if (
@@ -169,6 +170,69 @@ export function verifyFileMagicBytes(
     ) {
       return { valid: true, ext: ".pdf", mime: "application/pdf" };
     }
+    return { valid: false, ext: "", mime: "" };
+  }
+
+  if (expectedKind === "installer") {
+    // ZIP archive (PK\x03\x04 or PK\x05\x06)
+    if (
+      buffer.length >= 4 &&
+      buffer[0] === 0x50 &&
+      buffer[1] === 0x4b &&
+      (buffer[2] === 0x03 || buffer[2] === 0x05) &&
+      (buffer[3] === 0x04 || buffer[3] === 0x06)
+    ) {
+      return { valid: true, ext: ".zip", mime: "application/zip" };
+    }
+
+    // Windows PE executable (.exe -> MZ)
+    if (buffer.length >= 2 && buffer[0] === 0x4d && buffer[1] === 0x5a) {
+      return {
+        valid: true,
+        ext: ".exe",
+        mime: "application/vnd.microsoft.portable-executable",
+      };
+    }
+
+    // Windows Installer (.msi -> OLE2 Compound File)
+    if (
+      buffer.length >= 8 &&
+      buffer[0] === 0xd0 &&
+      buffer[1] === 0xcf &&
+      buffer[2] === 0x11 &&
+      buffer[3] === 0xe0 &&
+      buffer[4] === 0xa1 &&
+      buffer[5] === 0xb1 &&
+      buffer[6] === 0x1a &&
+      buffer[7] === 0xe1
+    ) {
+      return { valid: true, ext: ".msi", mime: "application/x-msi" };
+    }
+
+    // macOS Installer package (.pkg -> xar!)
+    if (
+      buffer.length >= 4 &&
+      buffer[0] === 0x78 &&
+      buffer[1] === 0x61 &&
+      buffer[2] === 0x72 &&
+      buffer[3] === 0x21
+    ) {
+      return { valid: true, ext: ".pkg", mime: "application/octet-stream" };
+    }
+
+    // macOS Disk Image (.dmg -> Apple UDIF koly trailer at EOF-512, or zlib/bzip2 with .dmg extension)
+    const isUdifDmg =
+      buffer.length >= 512 &&
+      buffer.subarray(buffer.length - 512, buffer.length - 508).toString("ascii") === "koly";
+    const isCompressedDmg =
+      originalName.toLowerCase().endsWith(".dmg") &&
+      buffer.length >= 4 &&
+      ((buffer[0] === 0x78 && (buffer[1] === 0x01 || buffer[1] === 0x9c || buffer[1] === 0xda)) ||
+        (buffer[0] === 0x42 && buffer[1] === 0x5a && buffer[2] === 0x68));
+    if (isUdifDmg || isCompressedDmg) {
+      return { valid: true, ext: ".dmg", mime: "application/x-apple-diskimage" };
+    }
+
     return { valid: false, ext: "", mime: "" };
   }
 

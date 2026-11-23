@@ -20,6 +20,7 @@ export default async function OnlineTradingPage() {
   const lang = await getServerLang();
   const t = dictionary[lang];
   const isEn = lang === "en";
+  const desktopApps = getPublishedDocuments("etop_desktop");
   const manuals = getPublishedDocuments("etop_manual");
 
   return (
@@ -64,44 +65,42 @@ export default async function OnlineTradingPage() {
             </p>
 
             <div className="mt-6 space-y-3">
-              <a
-                href={COMPANY_INFO.etopDownloads.win64}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-navy-900 transition hover:border-navy-400 hover:bg-navy-50"
-              >
-                <span className="inline-flex items-center gap-3">
-                  <Monitor className="h-5 w-5 text-navy-700" />
-                  Microsoft Windows 10 / 11 (64-bit)
-                </span>
-                <Download className="h-4 w-4 text-gold-600" />
-              </a>
-
-              <a
-                href={COMPANY_INFO.etopDownloads.mac}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-navy-900 transition hover:border-navy-400 hover:bg-navy-50"
-              >
-                <span className="inline-flex items-center gap-3">
-                  <Apple className="h-5 w-5 text-navy-700" />
-                  Apple macOS Installer
-                </span>
-                <Download className="h-4 w-4 text-gold-600" />
-              </a>
-
-              <a
-                href={COMPANY_INFO.etopDownloads.win32}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-navy-900 transition hover:border-navy-400 hover:bg-navy-50"
-              >
-                <span className="inline-flex items-center gap-3">
-                  <Monitor className="h-5 w-5 text-slate-500" />
-                  Microsoft Windows Legacy (32-bit)
-                </span>
-                <Download className="h-4 w-4 text-gold-600" />
-              </a>
+              {desktopApps.map((app) => {
+                const label = pickLang(lang, app.title_id, app.title_en);
+                const isMac = /mac|apple|osx/i.test(`${app.title_id} ${app.title_en}`);
+                const isLegacy = /legacy|32-bit/i.test(`${app.title_id} ${app.title_en}`);
+                const isLocal = app.file_url.startsWith("/api/uploads/");
+                return (
+                  <a
+                    key={app.id}
+                    href={app.file_url}
+                    target={isLocal ? undefined : "_blank"}
+                    rel={isLocal ? undefined : "noopener noreferrer"}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-navy-900 transition hover:border-navy-400 hover:bg-navy-50"
+                  >
+                    <span className="inline-flex items-center gap-3">
+                      {isMac ? (
+                        <Apple className="h-5 w-5 shrink-0 text-navy-700" />
+                      ) : (
+                        <Monitor
+                          className={`h-5 w-5 shrink-0 ${
+                            isLegacy ? "text-slate-500" : "text-navy-700"
+                          }`}
+                        />
+                      )}
+                      <span>{label}</span>
+                    </span>
+                    <span className="inline-flex shrink-0 items-center gap-2">
+                      {app.file_size && (
+                        <span className="hidden rounded-md bg-white px-2 py-0.5 text-[11px] font-medium text-slate-500 ring-1 ring-slate-200 sm:inline-block">
+                          {app.file_size}
+                        </span>
+                      )}
+                      <Download className="h-4 w-4 text-gold-600" />
+                    </span>
+                  </a>
+                );
+              })}
             </div>
           </div>
 
