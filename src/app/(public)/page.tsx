@@ -23,6 +23,8 @@ import { getServerLang } from "@/lib/server-lang";
 import { COMPANY_INFO, MANAGEMENT } from "@/lib/company-data";
 import { getActiveWppeStaff, getPublishedPosts } from "@/lib/queries";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { HeroStockChartBg } from "@/components/HeroStockChartBg";
+import { GovernanceTraderBg } from "@/components/GovernanceTraderBg";
 
 export default async function HomePage() {
   const lang = await getServerLang();
@@ -109,7 +111,7 @@ export default async function HomePage() {
     <>
       {/* HERO SECTION */}
       <section className="bg-eko-hero relative overflow-hidden text-white">
-        <div className="hero-grid-pattern absolute inset-0" />
+        <HeroStockChartBg />
         <div className="eko-ambient-float absolute -right-28 -top-12 h-[540px] w-[540px] rounded-full bg-gold-400/20 blur-3xl" />
         <div className="eko-ambient-float-delayed absolute -left-24 bottom-0 h-96 w-96 rounded-full bg-sky-400/20 blur-3xl" />
 
@@ -317,7 +319,9 @@ export default async function HomePage() {
 
       {/* GOVERNANCE & OJK COMPLIANCE SECTION */}
       <section className="bg-eko-hero relative overflow-hidden py-20 text-white">
-        <div className="hero-grid-pattern absolute inset-0 opacity-60" />
+        <GovernanceTraderBg />
+        <div className="eko-ambient-float absolute -left-24 -top-16 h-80 w-80 rounded-full bg-emerald-400/10 blur-3xl" />
+        <div className="eko-ambient-float-delayed absolute -right-24 bottom-0 h-96 w-96 rounded-full bg-gold-400/15 blur-3xl" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-12">
             <div className="lg:col-span-5">
