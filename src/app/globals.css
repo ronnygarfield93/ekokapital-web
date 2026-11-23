@@ -226,16 +226,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .eko-marquee-track,
   .eko-ambient-float,
-  .eko-ambient-float-delayed,
-  .eko-dropdown-enter {
+  .eko-ambient-float-delayed {
     animation: none !important;
-  }
-  .eko-btn-shine:hover,
-  .eko-card-lift:hover,
-  .eko-card-dark-lift:hover,
-  .eko-nav-item:hover {
-    transform: none !important;
   }
 }
