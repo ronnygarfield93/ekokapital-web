@@ -19,7 +19,9 @@ const cspHeader = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   output: "standalone",
-  ...(isProd ? {} : { allowedDevOrigins: ["192.168.1.116", "10.81.234.161"] }),
+  ...(isProd
+    ? {}
+    : { allowedDevOrigins: ["192.168.1.116", "10.81.234.161", "192.168.102.13"] }),
   images: {
     unoptimized: true,
   },

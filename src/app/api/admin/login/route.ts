@@ -5,6 +5,7 @@ import {
   checkPersistentRateLimit,
   clearPersistentRateLimit,
 } from "@/lib/db";
+import { RATE_LIMITS } from "@/lib/rate-limit-config";
 import { getClientIp, sha256, verifySameOrigin } from "@/lib/security";
 
 const loginSchema = z.object({
@@ -18,15 +19,28 @@ export async function POST(req: NextRequest) {
   }
 
   const ip = getClientIp(req);
-  const ipLimit = checkPersistentRateLimit(`login_ip:${ip}`, 10, 15 * 60 * 1000);
+  const ipKey = `login_ip:${ip}`;
+  const ipLimit = checkPersistentRateLimit(
+    ipKey,
+    RATE_LIMITS.adminLoginIp.maxRequests,
+    RATE_LIMITS.adminLoginIp.windowMs
+  );
   if (!ipLimit.allowed) {
     return NextResponse.json(
       {
         error: `Terlalu banyak percobaan login dari jaringan ini. Coba lagi dalam ${Math.ceil(
           ipLimit.retryAfterSec / 60
         )} menit.`,
+        retryAfterSec: ipLimit.retryAfterSec,
       },
-      { status: 429 }
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(ipLimit.retryAfterSec),
+          "X-RateLimit-Limit": String(RATE_LIMITS.adminLoginIp.maxRequests),
+          "X-RateLimit-Remaining": "0",
+        },
+      }
     );
   }
 
@@ -39,17 +53,29 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // VA-03: Secondary per-account lockout to mitigate distributed brute force
+  // VA-03: Per-account lockout (3 failed attempts per 5 minutes)
   const acctKey = `login_acct:${sha256(parsed.data.email.toLowerCase())}`;
-  const acctLimit = checkPersistentRateLimit(acctKey, 5, 15 * 60 * 1000);
+  const acctLimit = checkPersistentRateLimit(
+    acctKey,
+    RATE_LIMITS.adminLoginAccount.maxRequests,
+    RATE_LIMITS.adminLoginAccount.windowMs
+  );
   if (!acctLimit.allowed) {
     return NextResponse.json(
       {
-        error: `Akun dikunci sementara karena terlalu banyak percobaan gagal. Coba lagi dalam ${Math.ceil(
+        error: `Akun dikunci sementara karena ${RATE_LIMITS.adminLoginAccount.maxRequests} kali percobaan gagal. Coba lagi dalam ${Math.ceil(
           acctLimit.retryAfterSec / 60
         )} menit.`,
+        retryAfterSec: acctLimit.retryAfterSec,
       },
-      { status: 429 }
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(acctLimit.retryAfterSec),
+          "X-RateLimit-Limit": String(RATE_LIMITS.adminLoginAccount.maxRequests),
+          "X-RateLimit-Remaining": "0",
+        },
+      }
     );
   }
 
@@ -62,9 +88,23 @@ export async function POST(req: NextRequest) {
   );
 
   if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: 401 });
+    const remainingNote =
+      acctLimit.remaining > 0
+        ? ` Sisa ${acctLimit.remaining} percobaan sebelum dikunci 5 menit.`
+        : " Batas 3 kali percobaan tercapai, akun dikunci sementara selama 5 menit.";
+    return NextResponse.json(
+      { error: `${result.error}${remainingNote}` },
+      {
+        status: 401,
+        headers: {
+          "X-RateLimit-Limit": String(RATE_LIMITS.adminLoginAccount.maxRequests),
+          "X-RateLimit-Remaining": String(acctLimit.remaining),
+        },
+      }
+    );
   }
 
   clearPersistentRateLimit(acctKey);
+  clearPersistentRateLimit(ipKey);
   return NextResponse.json({ ok: true, user: result.user });
 }

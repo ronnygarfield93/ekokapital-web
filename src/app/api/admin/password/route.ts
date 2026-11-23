@@ -5,7 +5,13 @@ import {
   getCurrentSessionTokenHash,
   revokeOtherAdminSessions,
 } from "@/lib/auth";
-import { getDb, logAdminAction } from "@/lib/db";
+import {
+  checkPersistentRateLimit,
+  clearPersistentRateLimit,
+  getDb,
+  logAdminAction,
+} from "@/lib/db";
+import { RATE_LIMITS } from "@/lib/rate-limit-config";
 import {
   getClientIp,
   hashPassword,
@@ -34,6 +40,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const pwKey = `admin_pw:${admin.id}`;
+  const pwLimit = checkPersistentRateLimit(
+    pwKey,
+    RATE_LIMITS.adminPasswordChange.maxRequests,
+    RATE_LIMITS.adminPasswordChange.windowMs
+  );
+  if (!pwLimit.allowed) {
+    return NextResponse.json(
+      {
+        error: `Terlalu banyak percobaan ubah kata sandi. Coba lagi dalam ${Math.ceil(
+          pwLimit.retryAfterSec / 60
+        )} menit.`,
+        retryAfterSec: pwLimit.retryAfterSec,
+      },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(pwLimit.retryAfterSec),
+          "X-RateLimit-Limit": String(RATE_LIMITS.adminPasswordChange.maxRequests),
+          "X-RateLimit-Remaining": "0",
+        },
+      }
+    );
+  }
+
   const raw = await req.json().catch(() => null);
   const parsed = passwordSchema.safeParse(raw);
   if (!parsed.success) {
@@ -53,6 +84,8 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+
+  clearPersistentRateLimit(pwKey);
 
   const newHash = hashPassword(parsed.data.newPassword);
   db.prepare(

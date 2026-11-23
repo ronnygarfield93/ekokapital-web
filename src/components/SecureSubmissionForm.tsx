@@ -35,7 +35,18 @@ export function SecureSubmissionForm({
   const loadCaptcha = async () => {
     try {
       const res = await fetch("/api/captcha", { cache: "no-store" });
-      if (!res.ok) return;
+      if (!res.ok) {
+        if (res.status === 429) {
+          const errJson = await res.json().catch(() => null);
+          setError(
+            errJson?.error ||
+              (lang === "en"
+                ? "Too many CAPTCHA requests. Please try again in a few minutes."
+                : "Terlalu banyak permintaan CAPTCHA. Silakan coba lagi beberapa menit lagi.")
+          );
+        }
+        return;
+      }
       const json = await res.json();
       setCaptchaA(json.a);
       setCaptchaB(json.b);

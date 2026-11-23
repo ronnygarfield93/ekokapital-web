@@ -5,6 +5,7 @@ import {
   consumeCaptchaNonce,
   getDb,
 } from "@/lib/db";
+import { RATE_LIMITS } from "@/lib/rate-limit-config";
 import {
   generateTicketCode,
   getClientIp,
@@ -33,13 +34,25 @@ export async function POST(req: NextRequest) {
   }
 
   const ip = getClientIp(req);
-  const limit = checkPersistentRateLimit(`submit:${ip}`, 6, 10 * 60 * 1000);
+  const limit = checkPersistentRateLimit(
+    `submit:${ip}`,
+    RATE_LIMITS.submissions.maxRequests,
+    RATE_LIMITS.submissions.windowMs
+  );
   if (!limit.allowed) {
     return NextResponse.json(
       {
         error: `Terlalu banyak pengiriman. Silakan coba lagi dalam ${limit.retryAfterSec} detik.`,
+        retryAfterSec: limit.retryAfterSec,
       },
-      { status: 429 }
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(limit.retryAfterSec),
+          "X-RateLimit-Limit": String(RATE_LIMITS.submissions.maxRequests),
+          "X-RateLimit-Remaining": "0",
+        },
+      }
     );
   }
 
