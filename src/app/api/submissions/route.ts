@@ -6,7 +6,7 @@ import {
   getDb,
 } from "@/lib/db";
 import { RATE_LIMITS } from "@/lib/rate-limit-config";
-import { sendInternalSubmissionAlert } from "@/lib/mailer";
+import { sendSubmissionEmails } from "@/lib/mailer";
 import {
   generateTicketCode,
   getClientIp,
@@ -145,8 +145,8 @@ export async function POST(req: NextRequest) {
     sha256(ip)
   );
 
-  // Send internal email alert ONLY to PT Ekokapital Sekuritas (non-fatal if SMTP unavailable)
-  await sendInternalSubmissionAlert({
+  // Send internal alert to Ekokapital (+ official POJK receipt email to customer for complaints only)
+  await sendSubmissionEmails({
     ticketCode,
     type: data.type,
     isAnonymous,
