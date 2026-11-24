@@ -1,5 +1,3 @@
-import type { NextConfig } from "next";
-
 const isProd = process.env.NODE_ENV === "production";
 
 const cspHeader = [
@@ -7,7 +5,7 @@ const cspHeader = [
   "script-src 'self' 'unsafe-inline'" + (isProd ? "" : " 'unsafe-eval'"),
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
-  "img-src 'self' data: blob: https://ekokapital.com https://*.googleapis.com https://*.gstatic.com",
+  "img-src 'self' data: blob: https://ekokapital.com https://ekokapital.my.id https://*.googleapis.com https://*.gstatic.com",
   "frame-src 'self' https://www.google.com https://maps.google.com",
   "connect-src 'self'",
   "object-src 'none'",
@@ -16,7 +14,8 @@ const cspHeader = [
   "frame-ancestors 'none'",
 ].join("; ");
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   poweredByHeader: false,
   output: "standalone",
   ...(isProd
